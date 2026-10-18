@@ -1,24 +1,67 @@
-
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
+  const messagesEndRef = useRef(null);
 
-  function handleSend(event) {
-    event.preventDefault();
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
+}, [messages, loading]);
 
-    const text = message.trim();
-    if (!text) return;
+  
+async function handleSend(event) {
+  event.preventDefault();
+
+  const text = message.trim();
+  if (!text || loading) return;
+
+  setMessages((previous) => [
+    ...previous,
+    { role: "user", text },
+  ]);
+
+  setMessage("");
+  setError("");
+  setLoading(true);
+
+  try {
+    const response = await fetch("http://localhost:5000/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: text }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to get AI response.");
+    }
 
     setMessages((previous) => [
       ...previous,
-      { role: "user", text },
+      { role: "assistant", text: data.reply },
     ]);
+  } catch (err) {
+    console.error("Chat request failed:", err);
 
-    setMessage("");
+    setError(
+      err.message === "Failed to fetch"
+        ? "Cannot connect to the backend. Check that it is running."
+        : err.message
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   function clearChat() {
     setMessages([]);
@@ -67,23 +110,33 @@ function App() {
             </div>
           </section>
         ) : (
-          <section className="messages">
-            {messages.map((item, index) => (
-              <div
-                className={`message-row ${item.role}`}
-                key={index}
-              >
-                <div className="message-avatar">
-                  {item.role === "user" ? "Y" : "S"}
-                </div>
+          
+<section className="messages" aria-live="polite">
+  {messages.map((item, index) => (
+    <div
+      className={`message-row ${item.role}`}
+      key={index}
+    >
+      <div className="message-avatar">
+        {item.role === "user" ? "Y" : "S"}
+      </div>
 
-                <div className="message-bubble">
-                  {item.text}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+      <div className="message-bubble">
+        {item.text}
+      </div>
+    </div>
+  ))}
+
+  {loading && (
+    <div className="loading-message">
+      StudyMate AI is thinking...
+    </div>
+  )}
+
+  <div ref={messagesEndRef} />
+</section>
+          
+)}
 
         <form className="input-area" onSubmit={handleSend}>
           <input
