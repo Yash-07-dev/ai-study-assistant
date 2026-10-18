@@ -1,122 +1,114 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+
+import { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+
+  function handleSend(event) {
+    event.preventDefault();
+
+    const text = message.trim();
+    if (!text) return;
+
+    setMessages((previous) => [
+      ...previous,
+      { role: "user", text },
+    ]);
+
+    setMessage("");
+  }
+
+  function clearChat() {
+    setMessages([]);
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="header">
+        <div className="brand">
+          <div className="brand-icon">S</div>
+          <div>
+            <h1>StudyMate AI</h1>
+            <p>Your personal study assistant</p>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
+
         <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className="clear-button"
+          onClick={clearChat}
+          disabled={messages.length === 0}
         >
-          Count is {count}
+          Clear chat
         </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      <main className="chat-container">
+        {messages.length === 0 ? (
+          <section className="welcome">
+            <div className="welcome-icon">✦</div>
+            <h2>What do you want to learn today?</h2>
+            <p>
+              Ask a question, understand a concept,
+              or get help with your studies.
+            </p>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <div className="suggestions">
+              <button onClick={() => setMessage("Explain recursion simply")}>
+                Explain recursion simply
+              </button>
+              <button onClick={() => setMessage("What is a database index?")}>
+                What is a database index?
+              </button>
+              <button onClick={() => setMessage("Explain OOP concepts")}>
+                Explain OOP concepts
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="messages">
+            {messages.map((item, index) => (
+              <div
+                className={`message-row ${item.role}`}
+                key={index}
+              >
+                <div className="message-avatar">
+                  {item.role === "user" ? "Y" : "S"}
+                </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                <div className="message-bubble">
+                  {item.text}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        <form className="input-area" onSubmit={handleSend}>
+          <input
+            type="text"
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Ask anything about your studies..."
+            aria-label="Your question"
+          />
+
+          <button
+            className="send-button"
+            type="submit"
+            disabled={!message.trim()}
+          >
+            Send ↑
+          </button>
+        </form>
+
+        <p className="disclaimer">
+          AI can make mistakes. Verify important information.
+        </p>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
